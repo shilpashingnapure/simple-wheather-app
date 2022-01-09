@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<title>forecast</title>
+	<style>
+
+		.app{
+			display: flex;
+			justify-content: center;
+
+		}
+		.whether{
+			border: 1px solid transparent;
+			border-radius: 15px;
+			flex-basis: 100%;
+			color: #fff;
+			background-image: url("https://images.unsplash.com/photo-1544365558-35aa4afcf11f?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8N3x8cmFpbnklMjBiYWNrZ3JvdW5kfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=500&q=60");
+			background-size:contain;
+			background-attachment: fixed;
+  			box-shadow:inset 0 0 0 2000px rgba(0, 0, 0, 0.5);
+  			font-family: sans-serif;
+  			height: 380px;
+
+
+		}
+		.whether > p{
+			text-align: center;
+			font-size: 30px;
+		}
+
+		.search{
+			
+			width: 50%;
+			border-radius: 4px;
+			display: flex;
+			padding:10px;
+			justify-content: space-between;
+			margin: auto;
+			margin-top: 10%;
+			background: #fff;
+
+		}
+
+		.search input , button{
+			border: none;
+			background-color: #fff !important;
+		}
+		button{
+			cursor: pointer;
+		}
+		input:focus{
+			outline: none;
+			border: none;
+			background-color: #fff !important;
+		}
+		.whether__city{
+			display: flex;
+			justify-content: center;
+		}
+		.weatherDetails{
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			padding: 20px 10px;
+			background-color: rgb(0,0,0, .5);
+			border-radius: 20px;
+			color: #fff;
+		}
+		.weatherDetails > div{
+			padding: 8px 20px;
+			line-height: 8px;
+		}
+
+		.weatherDetails > div:first-child{
+			border-right: 2px solid grey;
+		}
+
+		.weatherDetails > div:last-child{
+			font-size: 14px;
+			letter-spacing: 1px;
+			color: #eee;
+		}
+		.weatherIcon{
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-top: 5px;
+			margin-bottom: -15px;
+		}
+		h1{
+			margin: 0;
+			font-size:35px;
+			font-weight: bolder;
+		}
+		span{
+			font-size:25px;
+			letter-spacing: 1px;
+		}
+
+		.map {
+			flex-grow: 1;
+		}
+		.map > div {
+			text-align: center;
+		}
+
+		.dailyforcast{
+			display: flex;
+			justify-content: space-around;
+			text-align: center;
+			margin-top: 2%;
+			padding: 0px 10px;
+		}
+
+		.dailyforcast > div{
+			padding: 10px;
+			width:30%;
+			height:30vh;
+			display: flex;
+			flex-direction: column;
+			border-radius: 10px;
+			padding-top: 15px;
+			box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+			
+		}
+
+		.dailyforcast > div:not(:first-child){
+			margin-left: 20px;
+		}
+		.dailyforcast > div *{
+			display: block;
+			margin: auto;
+		}
+		.dailyforcast img{
+			width:90%;
+		}
+
+		.dailyforcast span{
+			font-size: 20px;
+			margin-top: -25px;
+		}
+
+
+	</style>
+</head>
+<body>
+	<div class="app">
+		
+		<div class="whether">
+			
+			<div class="search">
+				<input type="text" id="city" placeholder="Enter City">
+				<button onclick="ShowWhether()"><i class="fa fa-search"></i></button>
+			</div>
+			<p id=cityName></p>
+			<div class="whether__city">
+				
+			</div>
+			
+		</div>
+		<div class="map"></div>
+
+	</div>
+	<div class="dailyforcast">
+		
+	</div>
+
+</body>
+</html>
+
+
+<script>
+	
+	async function ShowWhether(){
+		var city = document.querySelector("#city")
+		if(city.value == ""){
+			return false
+		}
+
+		//BACKGROUND CHANGE 
+		var imgUrl = "https://source.unsplash.com/1600x900/?city,"+city.value
+
+		var w = document.querySelector(".whether")
+		w.style.backgroundImage = `url(${imgUrl})`;
+		w.style.flexBasis = "50%";
+		
+
+		//API OF CURRENT CITY
+		var url = `https://api.openweathermap.org/data/2.5/weather?q=${city.value}&appid=449bf43674a2731274c0fb25c65d30b1&units=metric`
+		let res = await fetch(url)
+		let data = await res.json()
+		
+
+		//API OF 7 DAYS FORCAST 
+		var dailyurl = `https://api.openweathermap.org/data/2.5/onecall?lat=${data.coord.lat}&lon=${data.coord.lon}&exclude=7&appid=449bf43674a2731274c0fb25c65d30b1&units=metric`
+
+		let dailyres = await fetch(dailyurl)
+		let dailydata = await dailyres.json()
+		console.log(dailydata)
+		displayDtat(data , dailydata.daily)	
+		
+
+		//API OF GOOGLE MAP
+		var mapurl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyDD-hGtUpAe-cB6Bi-X67JDynDqPylJ2mU&q=${city.value}`
+		var map = document.querySelector(".map")
+		map.innerHTML = `<div><iframe 
+				  width="600" 
+				  height="380" 
+				  style="border:0" 
+				  loading="lazy"  
+				  allowfullscreen  
+				  src= ${mapurl} 
+				</iframe></div>`
+
+		
+		//REMOVE THE INPUT VALUE		
+		city.value = "";
+
+
+
+		
+	}
+
+
+	function displayDtat(current , forecast){
+
+		//SHOW CURRENT WHEATHER OF CITY
+		document.querySelector(".whether__city").innerHTML = "";
+
+		//CITY NAME
+		var cityname = document.querySelector("#cityName")
+		cityname.innerText = `Weather in ${current.name}`
+
+		var wheatherDetails = document.createElement("div")
+		wheatherDetails.setAttribute("class" , "weatherDetails")
+
+		//IN CHILD 1 -> 
+		var child1 = document.createElement("div")
+		var temp = document.createElement("h1")
+		temp.innerText = Math.floor(current.main.temp) + "°"
+
+		var wheatherIcon = document.createElement("div")
+		wheatherIcon.setAttribute("class" , "weatherIcon")
+		var span = document.createElement("span")
+		span.innerText = current.weather[0].description
+		var img = document.createElement("img")
+		img.src = `http://openweathermap.org/img/w/${current.weather[0].icon}.png`
+		wheatherIcon.append(span , img)
+
+		var date = document.createElement("p")
+		var currentDate = new Date().toDateString().split(" ")
+		date.innerText = `${currentDate[0]} ${currentDate[2]}, ${currentDate[1]} ${currentDate[3]}`
+		child1.append(temp , wheatherIcon , date)
+
+
+		//CHILD 2 ->
+		var child2 = document.createElement("div")
+
+		var maxtemp = document.createElement("p")
+		maxtemp.innerText = `maxtemp : ${Math.floor(current.main.temp_max)}°`
+
+		var mintemp = document.createElement("p")
+		mintemp.innerText = `mintemp : ${Math.floor(current.main.temp_min)}°`
+
+		var wind = document.createElement("p")
+		wind.innerText = `bind : ${current.wind.deg}`
+
+		var humidity = document.createElement("p")
+		humidity.innerText = `humidity : ${current.main.humidity}%`
+
+		child2.append(maxtemp , mintemp , wind , humidity)
+
+		wheatherDetails.append(child1 , child2)
+
+		document.querySelector(".whether__city").append(wheatherDetails)
+		
+
+
+		//SHOW DAILY FORCAST WHEATHER 
+
+		document.querySelector(".dailyforcast").innerHTML = "";
+		forecast.map(function(ele , i){
+				if(i != 0){
+					var div = document.createElement("div")
+				var day = new Date(ele.dt * 1000).toDateString()
+				
+				var icon = document.createElement("img")
+				icon.src = `http://openweathermap.org/img/w/${ele.weather[0].icon}.png`
+
+				var des = document.createElement("span")
+				des.innerText = ele.weather[0].description
+
+				var t = document.createElement("h2")
+				t.innerText =  Math.floor(ele.temp.day) + "°"
+
+				div.append(day , icon , des , t)
+				document.querySelector(".dailyforcast").append(div)
+			}
+
+
+		})
+
+		
+		
+	}
+
+</script>
